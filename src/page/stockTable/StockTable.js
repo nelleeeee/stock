@@ -1,49 +1,41 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import StockTableRow from "./StockTableRow";
-import { db } from "../../firebase";
+import axios from "axios";
 
-function Stocktable() {
-  // 전체주문조회 [1. 클릭해서 들어오면 db에서 수집]
-  // 전체주문조회 [2. 동기화 클릭하면 수집후 db에 저장 후 성공메시지]
-  // const [status, setStatus] = useState([]);
-  // async function callApi() {
-  //   return await axios.get("stores/7uw7zc08qw/v2/orders/count", {
-  //     // params: { order_id: 41264 },
-  //     headers: {
-  //       "x-auth-token": "23t2vx6zwiq32xa8b0uspfo7mb7181x",
-  //       "access-control-allow-origin": "*",
-  //       accept: "application/json",
-  //       "content-type": "application/json",
-  //     },
-  //   });
-  // }
+function Stocktable({ location }) {
+  const [stocks, setStocks] = useState([]);
 
-  // useEffect(() => {
-  //   //   빅커머스 총 오더갯수 호출
-  //   callApi()
-  //     .then(res => setStatus(res), console.log("call"))
-  //     .catch(error => console.log(error));
-  // }, []);
+  const callOrdersApi = useCallback(async () => {
+    await axios
+      .get(
+        `https://us-central1-interasiastock.cloudfunctions.net/app/sidebar/${location.state.id}`
+      )
+      .then(order => setStocks(order.data))
+      .catch(error => console.log(error));
+  }, [location]);
 
+  useEffect(() => {
+    //   링크로 넘어온 스테이트 컨트롤
+    callOrdersApi();
+  }, [callOrdersApi]);
   return (
-    <>
+    <div className="flex-col">
       <div className="grid grid-cols-4 gap-2 grid-flow-col">
         <div>번호</div>
         <div className="col-span-2">앨범명</div>
         <div>수량</div>
       </div>
       <div>
-        {/* {albumLists?.map(({ id, data: { quan, number, albumTitle } }) => (
+        {stocks?.map(({ id, items_total, default_currency_code }) => (
           <StockTableRow
             key={id}
             id={id}
-            quan={quan}
-            number={number}
-            albumTitle={albumTitle}
+            items_total={items_total}
+            default_currency_code={default_currency_code}
           />
-        ))} */}
+        ))}
       </div>
-    </>
+    </div>
   );
 }
 
